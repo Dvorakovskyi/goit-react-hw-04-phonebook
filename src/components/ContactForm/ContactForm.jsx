@@ -1,4 +1,5 @@
 import React from 'react';
+import { useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   StyledForm,
@@ -7,67 +8,69 @@ import {
   StyledAddBtn,
 } from './ContactForm.styled';
 
-class ContactForm extends React.Component {
-  state = {
-    contacts: [],
-    name: '',
-    number: '',
-  };
+const ContactForm = ({ onSubmit }) => {
+  const [name, setName] = useState('');
+  const [number, setNumber] = useState('');
 
-  handleChange = event => {
+  const handleChange = event => {
     const { name, value } = event.currentTarget;
 
-    this.setState({ [name]: value });
+    name === 'name' && setName(value);
+    name === 'number' && setNumber(value);
   };
 
-  handleSubmitForm = event => {
+  const handleSubmitForm = event => {
     event.preventDefault();
 
-    this.props.onSubmit(this.state);
+    const contacts = {
+      name,
+      number,
+    };
 
-    this.reset();
+    onSubmit(contacts);
+
+    reset();
   };
 
-  reset = () => {
-    this.setState({ name: '', number: '' });
+  const reset = () => {
+    setName('');
+    setNumber('');
   };
 
-  render() {
-    return (
-      <div>
-        <section>
-          <StyledForm onSubmit={this.handleSubmitForm}>
-            <StyledLabel htmlFor="name">Name</StyledLabel>
-            <StyledInput
-              id="name"
-              type="text"
-              name="name"
-              pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
-              title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
-              required
-              value={this.state.name}
-              onChange={this.handleChange}
-              placeholder="Enter name"
-            />
-            <StyledLabel htmlFor="number">Number</StyledLabel>
-            <StyledInput
-              id="number"
-              type="tel"
-              name="number"
-              pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
-              title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
-              required
-              value={this.state.number}
-              onChange={this.handleChange}
-              placeholder="Enter number"
-            />
-            <StyledAddBtn type="submit">Add contact</StyledAddBtn>
-          </StyledForm>
-        </section>
-      </div>
-    );
-  }
-}
+  return (
+    <div>
+      <section>
+        <StyledForm onSubmit={handleSubmitForm}>
+          <StyledLabel htmlFor="name">Name</StyledLabel>
+          <StyledInput
+            id="name"
+            type="text"
+            name="name"
+            pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
+            title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
+            required
+            value={name}
+            onChange={handleChange}
+            placeholder="Enter name"
+          />
+          <StyledLabel htmlFor="number">Number</StyledLabel>
+          <StyledInput
+            id="number"
+            type="tel"
+            name="number"
+            pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
+            title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
+            required
+            value={number}
+            onChange={handleChange}
+            placeholder="Enter number"
+          />
+          <StyledAddBtn type="submit">Add contact</StyledAddBtn>
+        </StyledForm>
+      </section>
+    </div>
+  );
+};
 
 ContactForm.propTypes = {
   onSubmit: PropTypes.func.isRequired,

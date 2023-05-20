@@ -1,24 +1,24 @@
 import React from 'react';
+import { useEffect, useState } from 'react';
 import { nanoid } from 'nanoid';
 import { Notify } from 'notiflix';
 import ContactForm from './ContactForm/ContactForm';
 import ContactList from 'components/ContactList/ContactList';
 import Filter from './Filter/Filter';
+import Notification from './Notification/Notification';
 import { StyledWrapper } from './App.styled';
 
-class App extends React.Component {
-  state = {
-    contacts: [
-      { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
-      { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
-      { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
-      { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
-    ],
-    filter: '',
-  };
+const App = () => {
+  const [contacts, setContacts] = useState(() => {
+    const contacts = localStorage.getItem('contacts');
+    const contactsParsed = JSON.parse(contacts);
 
-  addNewContact = data => {
-    if (this.checkContact(data.name)) {
+    return contactsParsed;
+  });
+  const [filter, setFilter] = useState('');
+
+  const addNewContact = data => {
+    if (checkContact(data.name)) {
       Notify.failure(`${data.name} is already in contacts`);
 
       return;
@@ -30,37 +30,24 @@ class App extends React.Component {
       number: data.number,
     };
 
-    const currentContact = this.state.contacts;
+    const currentContact = contacts;
 
     const updateContacts = [...currentContact, newContact];
 
-    this.setState({ contacts: updateContacts });
+    setContacts(updateContacts);
   };
 
-  componentDidMount() {
-    const contacts = localStorage.getItem('contacts');
-    const contactsParsed = JSON.parse(contacts);
-    
-    if (contactsParsed) {
-      this.setState({contacts: contactsParsed})
-    }
-  }
+  useEffect(() => {
+    contacts && localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts]);
 
-  componentDidUpdate(_, prevState) {
-    if (prevState.contacts !== this.state.contacts) {
-      localStorage.setItem('contacts', JSON.stringify(this.state.contacts))
-    }
-  }
-
-  handleChangeFilter = event => {
+  const handleChangeFilter = event => {
     const { value } = event.currentTarget;
 
-    this.setState({ filter: value });
+    setFilter(value);
   };
 
-  getContact = () => {
-    const { filter, contacts } = this.state;
-
+  const getContact = () => {
     const findContact = contacts.filter(contact => {
       return contact.name
         .toLowerCase()
@@ -70,37 +57,38 @@ class App extends React.Component {
     return findContact;
   };
 
-  checkContact = name => {
+  const checkContact = name => {
     const normalizedName = name.toLowerCase().trim();
-    const { contacts } = this.state;
+
     const foundName = contacts.find(
       ({ name }) => name.toLowerCase().trim() === normalizedName
     );
     return Boolean(foundName);
   };
 
-  deleteContact = contactId => {
-    this.setState(({ contacts }) => {
-      const foundDeleteContact = contacts.filter(
-        contact => contact.id !== contactId
-      );
-      return { contacts: foundDeleteContact };
-    });
+  const deleteContact = contactId => {
+    const foundDeleteContact = contacts.filter(
+      contact => contact.id !== contactId
+    );
+
+    return setContacts(foundDeleteContact);
   };
 
-  render() {
-    const foundContact = this.getContact();
+  const foundContact = getContact();
 
-    return (
-      <StyledWrapper>
-        <h1>Phonebook</h1>
-        <ContactForm onSubmit={this.addNewContact} />
-        <h2>Contacts</h2>
-        <Filter value={this.state.filter} onChange={this.handleChangeFilter} />
-        <ContactList contacts={foundContact} onClick={this.deleteContact} />
-      </StyledWrapper>
-    );
-  }
-}
+  return (
+    <StyledWrapper>
+      <h1>Phonebook</h1>
+      <ContactForm onSubmit={addNewContact} />
+      <h2>Contacts</h2>
+      <Filter value={filter} onChange={handleChangeFilter} />
+      {contacts.length > 0 ? (
+        <ContactList contacts={foundContact} onClick={deleteContact} />
+      ) : (
+        <Notification />
+      )}
+    </StyledWrapper>
+  );
+};
 
 export default App;
